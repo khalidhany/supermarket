@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Superstore Financial & Profitability Diagnostic | Executive BI</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg-main: #f8fafc;
+    --bg-surface: #ffffff;
+    --bg-subtle: #f1f5f9;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --accent: #0f172a;
+    --blue: #2563eb;
+    --emerald: #059669;
+    --emerald-bg: #ecfdf5;
+    --rose: #e11d48;
+    --rose-bg: #fff1f2;
+    --amber: #d97706;
+    --amber-bg: #fffbeb;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Inter", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: var(--sans);
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    padding-bottom: 48px;
+  }
+
+  /* Top Enterprise Navbar */
+  .topbar {
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .topbar-inner {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-mark {
+    width: 10px;
+    height: 24px;
+    background: var(--blue);
+    border-radius: 3px;
+  }
+  .brand-title {
+    font-size: 16px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    color: var(--text-main);
+  }
+  .brand-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* Segmented Control */
+  .nav-tabs {
+    display: inline-flex;
+    background: var(--bg-subtle);
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    gap: 2px;
+    flex-wrap: wrap;
+  }
+  .nav-tab {
+    border: none;
+    background: transparent;
+    padding: 6px 14px;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .nav-tab:hover { color: var(--text-main); }
+  .nav-tab.active {
+    background: var(--bg-surface);
+    color: var(--text-main);
+    font-weight: 600;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  }
+
+  /* Main Container */
+  .container {
+    max-width: 1360px;
+    margin: 24px auto 0;
+    padding: 0 24px;
+  }
+
+  /* KPI Strip */
+  .kpi-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .kpi-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .kpi-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .kpi-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: var(--text-muted);
+  }
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-family: var(--mono);
+  }
+  .badge-pos { background: var(--emerald-bg); color: var(--emerald); }
+  .badge-neg { background: var(--rose-bg); color: var(--rose); }
+  .badge-warn { background: var(--amber-bg); color: var(--amber); }
+
+  .kpi-val {
+    font-size: 25px;
+    font-weight: 700;
+    font-family: var(--mono);
+    letter-spacing: -0.6px;
+    color: var(--text-main);
+  }
+  .kpi-foot {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 6px;
+  }
+
+  /* Executive Callout Banner */
+  .exec-banner {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--blue);
+    border-radius: 8px;
+    padding: 14px 18px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+  }
+  .exec-banner-text {
+    font-size: 13px;
+    color: var(--text-main);
+  }
+  .exec-banner-text strong { font-weight: 600; }
+
+  /* Panes & Grid */
+  .view-pane { display: none; }
+  .view-pane.active { display: block; }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+  @media (max-width: 640px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  .panel {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .panel-header {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-title {
+    font-size: 14.5px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+  .panel-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  /* Filter Pills & Inputs */
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-pill {
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    color: var(--text-muted);
+    padding: 5px 11px;
+    font-size: 12px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn-pill:hover { color: var(--text-main); border-color: #cbd5e1; }
+  .btn-pill.active {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
+  }
+  .search-input {
+    border: 1px solid var(--border);
+    background: var(--bg-main);
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 6px;
+    color: var(--text-main);
+    outline: none;
+    width: 180px;
+  }
+  .search-input:focus { border-color: var(--blue); background: var(--bg-surface); }
+
+  /* Isolated Chart Containers */
+  .chart-container {
+    position: relative;
+    width: 100%;
+    height: 360px;
+  }
+  .chart-container-lg {
+    position: relative;
+    width: 100%;
+    height: 430px;
+  }
+  .chart-container-sm {
+    position: relative;
+    width: 100%;
+    height: 270px;
+  }
+
+  /* Enterprise Data Tables */
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    max-height: 440px;
+    overflow-y: auto;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+  }
+  th, td {
+    padding: 10px 14px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  th {
+    background: var(--bg-subtle);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    cursor: pointer;
+    user-select: none;
+  }
+  th:hover { color: var(--text-main); }
+  th.num, td.num { text-align: right; font-family: var(--mono); }
+  tbody tr:hover td { background: #f8fafc; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  .val-pos { color: var(--emerald); font-weight: 600; }
+  .val-neg { color: var(--rose); font-weight: 600; }
+  .val-warn { color: var(--amber); font-weight: 600; }
+
+  /* Inline Data Bars */
+  .bar-cell {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .mini-track {
+    width: 64px;
+    height: 6px;
+    background: var(--bg-subtle);
+    border-radius: 3px;
+    overflow: hidden;
+    display: inline-block;
+  }
+  .mini-fill {
+    height: 100%;
+    border-radius: 3px;
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div>
+        <div class="brand-title">US Superstore — Profitability & Margin Erosion Diagnostic</div>
+        <div class="brand-sub">DuckDB SQL Analytical Pipeline • 49 States • 17 Sub-Categories</div>
+      </div>
+    </div>
+    <nav class="nav-tabs">
+      <button class="nav-tab active" onclick="switchView('v-overview', this)">1. Division & Product P&L</button>
+      <button class="nav-tab" onclick="switchView('v-geo', this)">2. Geographic Leakage</button>
+      <button class="nav-tab" onclick="switchView('v-root', this)">3. Segment & Texas Root-Cause</button>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <!-- Executive KPI Strip -->
+  <section class="kpi-strip">
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Total Revenue</span>
+        <span class="badge badge-pos">37,873 Units</span>
+      </div>
+      <div class="kpi-val">$2,297,200.86</div>
+      <div class="kpi-foot">Gross top-line sales across all divisions</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Total Net Profit</span>
+        <span class="badge badge-pos">12.47% Margin</span>
+      </div>
+      <div class="kpi-val" style="color: var(--emerald);">$286,397.02</div>
+      <div class="kpi-foot">Technology & Office Supplies drive 93.6% of profit</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Furniture Division Profit</span>
+        <span class="badge badge-warn">2.49% Margin</span>
+      </div>
+      <div class="kpi-val" style="color: var(--amber);">$18,451.27</div>
+      <div class="kpi-foot">32.3% of revenue ($742.0K) but only 6.4% of profit</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">10 Loss-Making States</span>
+        <span class="badge badge-neg">-13.92% Margin</span>
+      </div>
+      <div class="kpi-val" style="color: var(--rose);">-$98,246.74</div>
+      <div class="kpi-foot">Generated on $705,684.21 sales (28%–39% discounts)</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-top">
+        <span class="kpi-label">Texas Net Loss (Rank #1)</span>
+        <span class="badge badge-neg">37.02% Avg Disc</span>
+      </div>
+      <div class="kpi-val" style="color: var(--rose);">-$25,729.36</div>
+      <div class="kpi-foot">$170,188.05 revenue eroded by uncapped discounting</div>
+    </div>
+  </section>
+
+  <!-- VIEW 1: DIVISION & PRODUCT P&L -->
+  <div id="v-overview" class="view-pane active">
+    <div class="exec-banner">
+      <div class="exec-banner-text">
+        <strong>Executive Takeaway:</strong> Severe margin compression in <strong>Furniture (2.49%)</strong> is driven by heavy promotional discounting in <strong>Tables (-$17,725.48 at 26.13% discount)</strong> and <strong>Bookcases (-$3,472.56 at 21.11% discount)</strong>. Sub-categories with average discounts exceeding 20% consistently suffer margin collapse.
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel" style="margin-bottom: 0;">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Macro Division Performance (Revenue vs. Net Profit)</div>
+            <div class="panel-sub">Comparison across the three primary operating segments</div>
+          </div>
+        </div>
+        <div class="chart-container-sm">
+          <canvas id="macroCatChart"></canvas>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom: 0;">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Division P&L Summary Table</div>
+            <div class="panel-sub">Query 1 output — Macro margin benchmarking</div>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Division</th>
+                <th class="num">Units Sold</th>
+                <th class="num">Revenue ($)</th>
+                <th class="num">Net Profit ($)</th>
+                <th class="num">Net Margin (%)</th>
+                <th class="num">Share of Profit</th>
+              </tr>
+            </thead>
+            <tbody id="macroCatBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top: 20px;">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Sub-Category Profitability & Discount Elasticity (17 Product Lines)</div>
+          <div class="panel-sub">Query 2 output — Evaluating net profit against promotional discount rates</div>
+        </div>
+        <div class="controls">
+          <button class="btn-pill active" onclick="renderSubCatChart('profit', this)">Net Profit ($)</button>
+          <button class="btn-pill" onclick="renderSubCatChart('margin', this)">Profit Margin (%)</button>
+          <button class="btn-pill" onclick="renderSubCatChart('sales', this)">Total Revenue ($)</button>
+          <button class="btn-pill" onclick="renderSubCatChart('discount', this)">Avg Discount (%)</button>
+        </div>
+      </div>
+      <div class="chart-container-lg">
+        <canvas id="subCatChart"></canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Sub-Category P&L Schedule</div>
+          <div class="panel-sub">Click any column header to sort ascending or descending</div>
+        </div>
+        <div class="controls">
+          <input type="text" id="subCatSearch" class="search-input" placeholder="Filter sub-category..." oninput="renderSubCatTable()">
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table id="subCatTable">
+          <thead>
+            <tr>
+              <th onclick="sortSubCat('name')">Sub-Category</th>
+              <th onclick="sortSubCat('category')">Division</th>
+              <th class="num" onclick="sortSubCat('units')">Units</th>
+              <th class="num" onclick="sortSubCat('sales')">Revenue ($)</th>
+              <th class="num" onclick="sortSubCat('profit')">Net Profit ($)</th>
+              <th class="num" onclick="sortSubCat('margin')">Margin (%)</th>
+              <th class="num" onclick="sortSubCat('discount')">Avg Discount (%)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: GEOGRAPHIC LEAKAGE -->
+  <div id="v-geo" class="view-pane">
+    <div class="exec-banner">
+      <div class="exec-banner-text">
+        <strong>Geographic Audit:</strong> Exactly <strong>10 states account for -$98,246.74 in net losses</strong> despite generating $705,684.21 in sales. Every loss-making state maintains an average discount between <strong>28.35% and 39.00%</strong>, whereas top profitable states (California, New York) cap average discounts below <strong>7.30%</strong>.
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Regional Profit & Discount Variance Across States</div>
+          <div class="panel-sub">Query 3 output — Comparing bottom 10 unprofitable states against top 10 profit leaders</div>
+        </div>
+        <div class="controls">
+          <button class="btn-pill active" onclick="renderStateChart('loss10', this)">Bottom 10 States (Losses)</button>
+          <button class="btn-pill" onclick="renderStateChart('profit10', this)">Top 10 States (Profits)</button>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="stateChart"></canvas>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Complete State-Level Financial Audit (49 States)</div>
+          <div class="panel-sub">Click column headers to sort • Use search box to isolate specific states</div>
+        </div>
+        <div class="controls">
+          <input type="text" id="stateSearch" class="search-input" placeholder="Search state..." oninput="renderStateTable()">
+        </div>
+      </div>
+      <div class="table-scroll">
+        <table id="stateTable">
+          <thead>
+            <tr>
+              <th onclick="sortStates('state')">State</th>
+              <th class="num" onclick="sortStates('sales')">Revenue ($)</th>
+              <th class="num" onclick="sortStates('profit')">Net Profit / Loss ($)</th>
+              <th class="num" onclick="sortStates('margin')">Net Margin (%)</th>
+              <th class="num" onclick="sortStates('discount')">Avg Discount Rate (%)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: SEGMENT & TEXAS ROOT-CAUSE -->
+  <div id="v-root" class="view-pane">
+    <div class="exec-banner">
+      <div class="exec-banner-text">
+        <strong>Root-Cause Isolation:</strong> Shipping mode analysis proves losses in Texas are driven by a flat <strong>30.00% discount</strong> rather than expedited freight. Drilling into the <strong>Texas Consumer segment</strong> isolates <strong>Binders (-$12,166.62)</strong> and <strong>Appliances (-$4,252.27)</strong> as the primary financial bleeders.
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel" style="margin-bottom: 0;">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Customer Segment Economics (Query 5)</div>
+            <div class="panel-sub">Consumer drives 50.6% of revenue but trails in margin efficiency (11.55%)</div>
+          </div>
+        </div>
+        <div class="chart-container-sm">
+          <canvas id="segmentChart"></canvas>
+        </div>
+        <div class="table-scroll" style="margin-top: 12px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Segment</th>
+                <th class="num">Revenue ($)</th>
+                <th class="num">Net Profit ($)</th>
+                <th class="num">Margin (%)</th>
+                <th class="num">Avg Discount</th>
+              </tr>
+            </thead>
+            <tbody id="segmentBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom: 0;">
+        <div class="panel-header">
+          <div>
+            <div class="panel-title">Shipping Hypothesis Test: Tables in Texas (Query 4)</div>
+            <div class="panel-sub">Standard Class incurs the largest loss (-$1,466.03) under a flat 30% discount</div>
+          </div>
+        </div>
+        <div class="chart-container-sm">
+          <canvas id="shipChart"></canvas>
+        </div>
+        <div class="table-scroll" style="margin-top: 12px;">
+          <table>
+            <thead>
+              <tr>
+                <th>Ship Mode</th>
+                <th class="num">Texas Tables Loss ($)</th>
+                <th class="num">Texas Discount</th>
+                <th class="num">Company-Wide Profit ($)</th>
+              </tr>
+            </thead>
+            <tbody id="shipBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top: 20px;">
+      <div class="panel-header">
+        <div>
+          <div class="panel-title">Granular Root-Cause Drill-Down: Texas × Consumer Segment (Query 6)</div>
+          <div class="panel-sub">Net profit/loss across all 17 sub-categories within the Texas Consumer segment</div>
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="txDrillChart"></canvas>
+      </div>
+      <div class="table-scroll" style="margin-top: 16px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Sub-Category</th>
+              <th class="num">Texas Consumer Sales ($)</th>
+              <th class="num">Texas Consumer Profit / Loss ($)</th>
+              <th class="num">Effective Margin (%)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="txDrillBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+const DATA = {
+  macroCategories: [
+    { category: "Technology", units: 6939, sales: 836154.03, profit: 145454.95 },
+    { category: "Office Supplies", units: 22906, sales: 719047.03, profit: 122490.80 },
+    { category: "Furniture", units: 8028, sales: 741999.80, profit: 18451.27 }
+  ],
+  subCategories: [
+    { name: "Tables", category: "Furniture", units: 1241, sales: 206965.53, profit: -17725.48, discount: 26.13 },
+    { name: "Bookcases", category: "Furniture", units: 868, sales: 114880.00, profit: -3472.56, discount: 21.11 },
+    { name: "Supplies", category: "Office Supplies", units: 647, sales: 46673.54, profit: -1189.10, discount: 7.68 },
+    { name: "Fasteners", category: "Office Supplies", units: 914, sales: 3024.28, profit: 949.52, discount: 8.20 },
+    { name: "Machines", category: "Technology", units: 440, sales: 189238.63, profit: 3384.76, discount: 30.61 },
+    { name: "Labels", category: "Office Supplies", units: 1400, sales: 12486.31, profit: 5546.25, discount: 6.87 },
+    { name: "Art", category: "Office Supplies", units: 3000, sales: 27118.79, profit: 6527.79, discount: 7.49 },
+    { name: "Envelopes", category: "Office Supplies", units: 906, sales: 16476.40, profit: 6964.18, discount: 8.03 },
+    { name: "Furnishings", category: "Furniture", units: 3563, sales: 91705.16, profit: 13059.14, discount: 13.83 },
+    { name: "Appliances", category: "Office Supplies", units: 1729, sales: 107532.16, profit: 18138.01, discount: 16.65 },
+    { name: "Storage", category: "Office Supplies", units: 3158, sales: 223843.61, profit: 21278.83, discount: 7.47 },
+    { name: "Chairs", category: "Furniture", units: 2356, sales: 328449.10, profit: 26590.17, discount: 17.02 },
+    { name: "Binders", category: "Office Supplies", units: 5974, sales: 203412.73, profit: 30221.76, discount: 37.23 },
+    { name: "Paper", category: "Office Supplies", units: 5178, sales: 78479.21, profit: 34053.57, discount: 7.49 },
+    { name: "Accessories", category: "Technology", units: 2976, sales: 167380.32, profit: 41936.64, discount: 7.85 },
+    { name: "Phones", category: "Technology", units: 3289, sales: 330007.05, profit: 44515.73, discount: 15.46 },
+    { name: "Copiers", category: "Technology", units: 234, sales: 149528.03, profit: 55617.82, discount: 16.18 }
+  ],
+  states: [
+    { state: "Texas", sales: 170188.05, profit: -25729.36, discount: 37.02 },
+    { state: "Ohio", sales: 78258.14, profit: -16971.38, discount: 32.49 },
+    { state: "Pennsylvania", sales: 116511.91, profit: -15559.96, discount: 32.86 },
+    { state: "Illinois", sales: 80166.10, profit: -12607.89, discount: 39.00 },
+    { state: "North Carolina", sales: 55603.16, profit: -7490.91, discount: 28.35 },
+    { state: "Colorado", sales: 32108.12, profit: -6527.86, discount: 31.65 },
+    { state: "Tennessee", sales: 30661.87, profit: -5341.69, discount: 29.13 },
+    { state: "Arizona", sales: 35282.00, profit: -3427.92, discount: 30.36 },
+    { state: "Florida", sales: 89473.71, profit: -3399.30, discount: 29.93 },
+    { state: "Oregon", sales: 17431.15, profit: -1190.47, discount: 28.87 },
+    { state: "Wyoming", sales: 1603.14, profit: 100.20, discount: 20.00 },
+    { state: "West Virginia", sales: 1209.82, profit: 185.92, discount: 7.50 },
+    { state: "North Dakota", sales: 919.91, profit: 230.15, discount: 0.00 },
+    { state: "South Dakota", sales: 1315.56, profit: 394.83, discount: 0.00 },
+    { state: "Maine", sales: 1270.53, profit: 454.49, discount: 0.00 },
+    { state: "Idaho", sales: 4382.49, profit: 826.72, discount: 8.57 },
+    { state: "Kansas", sales: 2914.31, profit: 836.44, discount: 0.00 },
+    { state: "District of Columbia", sales: 2865.02, profit: 1059.59, discount: 0.00 },
+    { state: "New Mexico", sales: 4783.52, profit: 1157.12, discount: 5.95 },
+    { state: "Iowa", sales: 4579.76, profit: 1183.81, discount: 0.00 },
+    { state: "New Hampshire", sales: 7292.52, profit: 1706.50, discount: 1.11 },
+    { state: "South Carolina", sales: 8481.71, profit: 1769.06, discount: 0.00 },
+    { state: "Montana", sales: 5589.35, profit: 1833.33, discount: 6.67 },
+    { state: "Nebraska", sales: 7464.93, profit: 2037.09, discount: 0.00 },
+    { state: "Louisiana", sales: 9217.03, profit: 2196.10, discount: 0.00 },
+    { state: "Vermont", sales: 8929.37, profit: 2244.98, discount: 0.00 },
+    { state: "Utah", sales: 11220.06, profit: 2546.53, discount: 6.04 },
+    { state: "Mississippi", sales: 10771.34, profit: 3172.98, discount: 0.00 },
+    { state: "Nevada", sales: 16729.10, profit: 3316.77, discount: 6.15 },
+    { state: "Connecticut", sales: 13384.36, profit: 3511.49, discount: 0.73 },
+    { state: "Arkansas", sales: 11678.13, profit: 4008.69, discount: 0.00 },
+    { state: "Oklahoma", sales: 19683.39, profit: 4853.96, discount: 0.00 },
+    { state: "Alabama", sales: 19510.64, profit: 5786.83, discount: 0.00 },
+    { state: "Missouri", sales: 22205.15, profit: 6436.21, discount: 0.00 },
+    { state: "Massachusetts", sales: 28634.43, profit: 6785.50, discount: 1.56 },
+    { state: "Maryland", sales: 23705.52, profit: 7031.18, discount: 0.57 },
+    { state: "Rhode Island", sales: 22627.96, profit: 7285.63, discount: 2.14 },
+    { state: "Wisconsin", sales: 32114.61, profit: 8401.80, discount: 0.00 },
+    { state: "New Jersey", sales: 35764.31, profit: 9772.91, discount: 0.46 },
+    { state: "Delaware", sales: 27451.07, profit: 9977.37, discount: 0.63 },
+    { state: "Minnesota", sales: 29863.15, profit: 10823.19, discount: 0.00 },
+    { state: "Kentucky", sales: 36591.75, profit: 11199.70, discount: 0.00 },
+    { state: "Georgia", sales: 49095.84, profit: 16250.04, discount: 0.00 },
+    { state: "Indiana", sales: 53555.36, profit: 18382.94, discount: 0.00 },
+    { state: "Virginia", sales: 70636.72, profit: 18597.95, discount: 0.00 },
+    { state: "Michigan", sales: 76269.61, profit: 24463.19, discount: 0.71 },
+    { state: "Washington", sales: 138641.27, profit: 33402.65, discount: 6.40 },
+    { state: "New York", sales: 310876.27, profit: 74038.55, discount: 5.53 },
+    { state: "California", sales: 457687.63, profit: 76381.39, discount: 7.28 }
+  ],
+  segments: [
+    { segment: "Consumer", sales: 1161401.34, profit: 134119.21, discount: 15.81 },
+    { segment: "Corporate", sales: 706146.37, profit: 91979.13, discount: 15.82 },
+    { segment: "Home Office", sales: 429653.15, profit: 60298.68, discount: 14.71 }
+  ],
+  shipping: [
+    { mode: "Standard Class", tx_loss: -1466.03, discount: 30.00, macro_profit: 164088.79 },
+    { mode: "Second Class", tx_loss: -431.65, discount: 30.00, macro_profit: 57446.64 },
+    { mode: "First Class", tx_loss: -250.87, discount: 30.00, macro_profit: 48969.84 },
+    { mode: "Same Day", tx_loss: -68.13, discount: 30.00, macro_profit: 15891.76 }
+  ],
+  txConsumer: [
+    { name: "Binders", sales: 7405.70, profit: -12166.62 },
+    { name: "Appliances", sales: 1654.18, profit: -4252.27 },
+    { name: "Tables", sales: 11882.54, profit: -1741.56 },
+    { name: "Machines", sales: 10552.96, profit: -1670.21 },
+    { name: "Furnishings", sales: 1632.19, profit: -1358.48 },
+    { name: "Bookcases", sales: 8283.08, profit: -1335.21 },
+    { name: "Chairs", sales: 13890.47, profit: -1103.55 },
+    { name: "Storage", sales: 8767.10, profit: -840.93 },
+    { name: "Supplies", sales: 4349.29, profit: -815.89 },
+    { name: "Labels", sales: 63.09, profit: 21.79 },
+    { name: "Fasteners", sales: 182.53, profit: 41.18 },
+    { name: "Art", sales: 1592.28, profit: 185.79 },
+    { name: "Envelopes", sales: 1116.01, profit: 377.52 },
+    { name: "Accessories", sales: 7162.78, profit: 628.75 },
+    { name: "Copiers", sales: 2479.94, profit: 786.98 },
+    { name: "Paper", sales: 3744.62, profit: 1292.90 },
+    { name: "Phones", sales: 11217.63, profit: 1353.44 }
+  ]
+};
+
+// Enrich computed margins
+DATA.subCategories.forEach(d => d.margin = +(d.profit * 100 / d.sales).toFixed(2));
+DATA.states.forEach(d => d.margin = +(d.profit * 100 / d.sales).toFixed(2));
+
+const fmtUSD = (v) => (v < 0 ? '-$' : '$') + Math.abs(Number(v)).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const fmtInt = (v) => Number(v).toLocaleString('en-US');
+
+let subCatSort = { key: 'profit', asc: true };
+let stateSort = { key: 'profit', asc: true };
+
+let subCatChartInst = null;
+let stateChartInst = null;
+
+Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", sans-serif';
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#64748b';
+
+function switchView(id, btn) {
+  document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function initStaticTables() {
+  const totalProfit = 286397.02;
+  document.getElementById('macroCatBody').innerHTML = DATA.macroCategories.map(r => {
+    const margin = (r.profit * 100 / r.sales).toFixed(2);
+    const share = (r.profit * 100 / totalProfit).toFixed(1);
+    return `<tr>
+      <td><strong>${r.category}</strong></td>
+      <td class="num">${fmtInt(r.units)}</td>
+      <td class="num">${fmtUSD(r.sales)}</td>
+      <td class="num ${r.profit < 25000 ? 'val-warn' : 'val-pos'}">${fmtUSD(r.profit)}</td>
+      <td class="num ${margin < 5 ? 'val-neg' : 'val-pos'}">${margin}%</td>
+      <td class="num">${share}%</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('segmentBody').innerHTML = DATA.segments.map(s => {
+    const margin = (s.profit * 100 / s.sales).toFixed(2);
+    return `<tr>
+      <td><strong>${s.segment}</strong></td>
+      <td class="num">${fmtUSD(s.sales)}</td>
+      <td class="num val-pos">${fmtUSD(s.profit)}</td>
+      <td class="num">${margin}%</td>
+      <td class="num">${s.discount.toFixed(2)}%</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('shipBody').innerHTML = DATA.shipping.map(s => `<tr>
+    <td><strong>${s.mode}</strong></td>
+    <td class="num val-neg">${fmtUSD(s.tx_loss)}</td>
+    <td class="num val-warn">${s.discount.toFixed(2)}%</td>
+    <td class="num val-pos">${fmtUSD(s.macro_profit)}</td>
+  </tr>`).join('');
+
+  document.getElementById('txDrillBody').innerHTML = DATA.txConsumer.map(t => {
+    const margin = (t.profit * 100 / t.sales).toFixed(2);
+    const badge = t.profit < 0
+      ? `<span class="badge badge-neg">Net Bleeder</span>`
+      : `<span class="badge badge-pos">Profitable</span>`;
+    return `<tr>
+      <td><strong>${t.name}</strong></td>
+      <td class="num">${fmtUSD(t.sales)}</td>
+      <td class="num ${t.profit < 0 ? 'val-neg' : 'val-pos'}">${fmtUSD(t.profit)}</td>
+      <td class="num ${t.profit < 0 ? 'val-neg' : ''}">${margin}%</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderSubCatTable() {
+  const q = (document.getElementById('subCatSearch').value || '').toLowerCase();
+  const rows = DATA.subCategories
+    .filter(r => r.name.toLowerCase().includes(q) || r.category.toLowerCase().includes(q))
+    .sort((a, b) => {
+      const k = subCatSort.key;
+      if (typeof a[k] === 'string') return subCatSort.asc ? a[k].localeCompare(b[k]) : b[k].localeCompare(a[k]);
+      return subCatSort.asc ? a[k] - b[k] : b[k] - a[k];
+    });
+
+  document.querySelector('#subCatTable tbody').innerHTML = rows.map(r => {
+    const discPct = Math.min(100, (r.discount / 40) * 100);
+    const discColor = r.discount >= 20 ? '#d97706' : '#64748b';
+    return `<tr>
+      <td><strong>${r.name}</strong></td>
+      <td>${r.category}</td>
+      <td class="num">${fmtInt(r.units)}</td>
+      <td class="num">${fmtUSD(r.sales)}</td>
+      <td class="num ${r.profit < 0 ? 'val-neg' : 'val-pos'}">${fmtUSD(r.profit)}</td>
+      <td class="num ${r.margin < 0 ? 'val-neg' : ''}">${r.margin.toFixed(2)}%</td>
+      <td class="num">
+        <div class="bar-cell">
+          <span>${r.discount.toFixed(2)}%</span>
+          <span class="mini-track"><span class="mini-fill" style="width:${discPct}%;background:${discColor}"></span></span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function sortSubCat(key) {
+  if (subCatSort.key === key) subCatSort.asc = !subCatSort.asc;
+  else { subCatSort.key = key; subCatSort.asc = true; }
+  renderSubCatTable();
+}
+
+function renderStateTable() {
+  const q = (document.getElementById('stateSearch').value || '').toLowerCase();
+  const rows = DATA.states
+    .filter(r => r.state.toLowerCase().includes(q))
+    .sort((a, b) => {
+      const k = stateSort.key;
+      if (typeof a[k] === 'string') return stateSort.asc ? a[k].localeCompare(b[k]) : b[k].localeCompare(a[k]);
+      return stateSort.asc ? a[k] - b[k] : b[k] - a[k];
+    });
+
+  document.querySelector('#stateTable tbody').innerHTML = rows.map(r => {
+    const discPct = Math.min(100, (r.discount / 40) * 100);
+    const discColor = r.discount >= 25 ? '#e11d48' : '#2563eb';
+    return `<tr>
+      <td><strong>${r.state}</strong></td>
+      <td class="num">${fmtUSD(r.sales)}</td>
+      <td class="num ${r.profit < 0 ? 'val-neg' : 'val-pos'}">${fmtUSD(r.profit)}</td>
+      <td class="num ${r.margin < 0 ? 'val-neg' : ''}">${r.margin.toFixed(2)}%</td>
+      <td class="num">
+        <div class="bar-cell">
+          <span>${r.discount.toFixed(2)}%</span>
+          <span class="mini-track"><span class="mini-fill" style="width:${discPct}%;background:${discColor}"></span></span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function sortStates(key) {
+  if (stateSort.key === key) stateSort.asc = !stateSort.asc;
+  else { stateSort.key = key; stateSort.asc = true; }
+  renderStateTable();
+}
+
+function initCharts() {
+  // Macro Category Chart
+  new Chart(document.getElementById('macroCatChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: DATA.macroCategories.map(d => d.category),
+      datasets: [
+        { label: 'Revenue ($)', data: DATA.macroCategories.map(d => d.sales), backgroundColor: '#2563eb', borderRadius: 5 },
+        { label: 'Net Profit ($)', data: DATA.macroCategories.map(d => d.profit), backgroundColor: '#059669', borderRadius: 5 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', align: 'end' } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => '$' + (v/1000) + 'K' } }
+      }
+    }
+  });
+
+  // Segment Chart
+  new Chart(document.getElementById('segmentChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: DATA.segments.map(s => s.segment),
+      datasets: [
+        { label: 'Revenue ($)', data: DATA.segments.map(s => s.sales), backgroundColor: '#2563eb', borderRadius: 5 },
+        { label: 'Net Profit ($)', data: DATA.segments.map(s => s.profit), backgroundColor: '#059669', borderRadius: 5 }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', align: 'end' } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => '$' + (v/1000) + 'K' } }
+      }
+    }
+  });
+
+  // Shipping Chart
+  new Chart(document.getElementById('shipChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: DATA.shipping.map(s => s.mode),
+      datasets: [{
+        label: 'Net Loss in Texas Tables ($)',
+        data: DATA.shipping.map(s => s.tx_loss),
+        backgroundColor: '#e11d48',
+        borderRadius: 5,
+        barThickness: 28
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#f1f5f9' } }
+      }
+    }
+  });
+
+  // Texas Consumer Drill-down Chart
+  new Chart(document.getElementById('txDrillChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: DATA.txConsumer.map(d => d.name),
+      datasets: [{
+        label: 'Texas Consumer Net Profit / Loss ($)',
+        data: DATA.txConsumer.map(d => d.profit),
+        backgroundColor: DATA.txConsumer.map(d => d.profit < 0 ? '#e11d48' : '#059669'),
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { display: false } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => fmtUSD(v) } }
+      }
+    }
+  });
+}
+
+function renderSubCatChart(metric = 'profit', btn = null) {
+  if (btn) {
+    btn.parentElement.querySelectorAll('.btn-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const ctx = document.getElementById('subCatChart').getContext('2d');
+  if (subCatChartInst) subCatChartInst.destroy();
+
+  const sorted = [...DATA.subCategories].sort((a, b) => a[metric] - b[metric]);
+  const colors = sorted.map(d => {
+    if (metric === 'profit' || metric === 'margin') return d[metric] < 0 ? '#e11d48' : '#2563eb';
+    if (metric === 'discount') return d.discount >= 20 ? '#d97706' : '#64748b';
+    return '#0f172a';
+  });
+
+  subCatChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: sorted.map(d => `${d.name} (${d.discount}% disc)`),
+      datasets: [{
+        data: sorted.map(d => d[metric]),
+        backgroundColor: colors,
+        borderRadius: 4,
+        barThickness: 16
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f1f5f9' } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+function renderStateChart(mode = 'loss10', btn = null) {
+  if (btn) {
+    btn.parentElement.querySelectorAll('.btn-pill').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+  const ctx = document.getElementById('stateChart').getContext('2d');
+  if (stateChartInst) stateChartInst.destroy();
+
+  const subset = mode === 'loss10'
+    ? DATA.states.slice(0, 10)
+    : [...DATA.states].slice(-10).reverse();
+
+  stateChartInst = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: subset.map(s => `${s.state} (Avg Disc: ${s.discount}%)`),
+      datasets: [{
+        data: subset.map(s => s.profit),
+        backgroundColor: subset.map(s => s.profit < 0 ? '#e11d48' : '#059669'),
+        borderRadius: 5,
+        barThickness: 20
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f1f5f9' }, ticks: { callback: v => fmtUSD(v) } },
+        y: { grid: { display: false } }
+      }
+    }
+  });
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  initStaticTables();
+  renderSubCatTable();
+  renderStateTable();
+  initCharts();
+  renderSubCatChart('profit');
+  renderStateChart('loss10');
+});
+</script>
+</body>
+</html>
